@@ -1,4 +1,4 @@
-# Ilimba v0.21.3 — version GitHub Pages (installable)
+# Ilimba v0.22.2 — version GitHub Pages (installable)
 
 Cette version s'installe comme une appli : sur iPhone, lancée depuis l'icône de l'écran d'accueil, elle s'ouvre **sans aucune barre Safari** ; sur Android, en vrai plein écran. Elle marche aussi hors-ligne après la première visite.
 
