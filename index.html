@@ -93,7 +93,7 @@
    ========================================================= */
 
 /* ---------- Polices (chargées si réseau, sinon repli système) ---------- */
-const VERSION='0.40.1';
+const VERSION='0.41.0';
 const FD='"MochiyEmb","Mochiy Pop One","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif';
 const FU='"ZenEmb","Zen Maru Gothic",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif';
 try{ for(const f of ['40px MochiyEmb','700 20px ZenEmb','900 20px ZenEmb']) document.fonts.load(f,'Aあ'); document.fonts.load('40px MochiyEmb','ハカセぽ悪夢屋根裏墓所心臓'); }catch(e){} // katakana et quelques kanji/kana absents du sous-ensemble d'origine (police complétée)
@@ -5195,6 +5195,19 @@ function arrowNext(x,y,w,h,txt,fs,maxW){ // flèche "À SUIVRE…" : s'agrandit 
   ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke(p);
   ctx.font='italic '+fs+'px '+FD; ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(txt,x+14,y+h/2+1);
 }
+function houseIcon(x,y,s,col){ ctx.save(); ctx.translate(x,y); ctx.scale(s,s); ctx.lineJoin='round'; ctx.strokeStyle='#1a1024'; ctx.lineWidth=2;
+  ctx.fillStyle='#fff8ef'; ctx.beginPath(); ctx.roundRect(-8,-2,16,12,2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=col||'#ff6fa8'; ctx.beginPath(); ctx.moveTo(-12,0); ctx.lineTo(0,-11); ctx.lineTo(12,0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#a8744f'; ctx.beginPath(); ctx.roundRect(-2.5,3,5,7,1.5); ctx.fill(); ctx.stroke(); ctx.restore(); }
+let OVHOME=null; // plaquette « Accueil » de l'écran de fin (position à l'écran, pour le toucher)
+function homePlaque(x,y,t){ const hp=OVHOME&&OVHOME.pressT!=null?Math.max(0,1-(t-OVHOME.pressT)/0.25):0; ctx.save(); ctx.translate(x,y); ctx.rotate(-0.05+Math.sin(t*1.6)*0.02); ctx.scale(1-0.08*hp,1-0.08*hp);
+  ctx.strokeStyle='#c0392b'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(-10,-30); ctx.lineTo(0,-40); ctx.lineTo(10,-30); ctx.stroke(); ctx.fillStyle='#c0392b'; ctx.beginPath(); ctx.arc(0,-40,2.5,0,7); ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.roundRect(-31,-26,68,62,10); ctx.fill();
+  ctx.fillStyle='#fff3c4'; ctx.strokeStyle='#1a1024'; ctx.lineWidth=2.4; ctx.beginPath(); ctx.roundRect(-34,-30,68,62,10); ctx.fill(); ctx.stroke();
+  houseIcon(0,-6,1.3); ctx.font='800 13px '+FU; ctx.fillStyle='#3a2050'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('Accueil',0,20);
+  const M=ctx.getTransform(), c=M.transformPoint(new DOMPoint(0,1)), e2=M.transformPoint(new DOMPoint(34,1)); ctx.restore();
+  OVHOME={x:c.x/DPR,y:c.y/DPR,r:Math.hypot(e2.x-c.x,e2.y-c.y)/DPR+8,pressT:OVHOME&&OVHOME.pressT}; }
+function goHome(){ resetGame(); state='title'; OVHOME=null; }
 function drawOver(){
   const a=Math.min(1,overT*2.5), t=game.time, fall=overCause==='fall';
   ctx.fillStyle='rgba(20,8,30,'+(0.5*a)+')'; ctx.fillRect(0,0,W,H);
@@ -5261,7 +5274,7 @@ function drawOver(){
   // E : rejouer
   ctx.save(); ctx.clip(E); ctx.fillStyle='rgba(255,236,246,0.6)'; ctx.fillRect(0,450,CW,140); ctx.restore();
   sealSq(m+22,CH-m-20,'森',13,-0.1);
-  if(overT>0.8){ emaBtn(CW/2-30,CH-70,170,'ENCORE !',18,true); if(best>0) recordCard(CW-82,CH-48,best,17); }
+  if(overT>0.8){ emaBtn(CW/2+2,CH-70,146,'ENCORE !',18,true); if(best>0) recordCard(CW-70,CH-44,best,15); homePlaque(m+42,CH-60,t); } else OVHOME=null;
   for(const P of [A,B,C,D,E]) komaBorder(P,3);
   ctx.restore();
 }
@@ -5581,7 +5594,7 @@ function press(px,py){
     AU.woke=true; startGame(); return; }
   if(state==='play'){ pilotPress(); return; }
   if(state==='pause'){ resumeGame(); return; }
-  if(state==='over'&&overT>0.8){ resetGame(); startGame(); }
+  if(state==='over'&&overT>0.8){ if(px!=null&&OVHOME&&Math.hypot(px-OVHOME.x,py-OVHOME.y)<OVHOME.r){ OVHOME.pressT=game.time; try{ SFX.member(); }catch(e){} setTimeout(goHome,140); return; } resetGame(); startGame(); }
 }
 const pointers=new Set();
 cvs.addEventListener('pointerdown',e=>{
